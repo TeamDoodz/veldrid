@@ -86,14 +86,16 @@ namespace Veldrid.Sdl2
         {
             public override IEnumerable<string> EnumeratePossibleLibraryLoadTargets(string name)
             {
+                List<string> test = GetPaths(name).ToList();
+
                 return base.EnumeratePossibleLibraryLoadTargets(name).Concat(GetPaths(name));
             }
 
             private IEnumerable<string> GetPaths(string name)
             {
-                yield return Path.Combine("native", "osx-x64", $"lib{name}.dylib");
-                yield return Path.Combine("native", "win-x64", $"{name}.dll");
-                yield return Path.Combine("native", "win-x86", $"{name}.dll");
+                yield return Path.Combine(AppContext.BaseDirectory, "native", "osx-x64", $"{name}");
+                yield return Path.Combine(AppContext.BaseDirectory, "native", "win-x64", $"{name}");
+                yield return Path.Combine(AppContext.BaseDirectory, "native", "win-x86", $"{name}");
             }
         }
     }

@@ -1,6 +1,9 @@
 ﻿using NativeLibraryLoader;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
+using System.Linq;
 using System.Runtime.InteropServices;
 
 namespace Veldrid.Sdl2
@@ -37,7 +40,7 @@ namespace Veldrid.Sdl2
                 names = new[] { "SDL2.dll" };
             }
 
-            NativeLibrary lib = new NativeLibrary(names);
+            NativeLibrary lib = new NativeLibrary(names, LibraryLoader.GetPlatformDefaultLoader(), new Sdl2PathResolver());
             return lib;
         }
 
@@ -78,5 +81,20 @@ namespace Veldrid.Sdl2
         private delegate void SDL_free_t(void* ptr);
         private static SDL_free_t s_sdl_free = LoadFunction<SDL_free_t>("SDL_free");
         public static void SDL_free(void* ptr) { s_sdl_free(ptr); }
+
+        private sealed class Sdl2PathResolver : DefaultPathResolver
+        {
+            public override IEnumerable<string> EnumeratePossibleLibraryLoadTargets(string name)
+            {
+                return base.EnumeratePossibleLibraryLoadTargets(name).Concat(GetPaths(name));
+            }
+
+            private IEnumerable<string> GetPaths(string name)
+            {
+                yield return Path.Combine("native", "osx-x64", $"lib{name}.dylib");
+                yield return Path.Combine("native", "win-x64", $"{name}.dll");
+                yield return Path.Combine("native", "win-x86", $"{name}.dll");
+            }
+        }
     }
 }

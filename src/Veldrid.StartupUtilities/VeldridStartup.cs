@@ -136,9 +136,13 @@ namespace Veldrid.StartupUtilities
             }
         }
 
-        public static unsafe SwapchainSource GetSwapchainSource(Sdl2Window window)
+        public static SwapchainSource GetSwapchainSource(Sdl2Window window)
         {
-            IntPtr sdlHandle = window.SdlWindowHandle;
+            return GetSwapchainSource(window.SdlWindowHandle);
+        }
+        public static unsafe SwapchainSource GetSwapchainSource(SDL_Window window)
+        {
+            IntPtr sdlHandle = window;
             SDL_SysWMinfo sysWmInfo;
             Sdl2Native.SDL_GetVersion(&sysWmInfo.version);
             Sdl2Native.SDL_GetWMWindowInfo(sdlHandle, &sysWmInfo);
@@ -206,16 +210,24 @@ namespace Veldrid.StartupUtilities
 
 #if !EXCLUDE_VULKAN_BACKEND
         public static unsafe GraphicsDevice CreateVulkanGraphicsDevice(GraphicsDeviceOptions options, Sdl2Window window)
-            => CreateVulkanGraphicsDevice(options, window, false);
+            => CreateVulkanGraphicsDevice(options, window.SdlWindowHandle, false);
+        public static GraphicsDevice CreateVulkanGraphicsDevice(GraphicsDeviceOptions options, Sdl2Window window, bool colorSrgb)
+        {
+            return CreateVulkanGraphicsDevice(options, window.SdlWindowHandle, colorSrgb);
+        }
         public static unsafe GraphicsDevice CreateVulkanGraphicsDevice(
             GraphicsDeviceOptions options,
-            Sdl2Window window,
+            SDL_Window window,
             bool colorSrgb)
         {
+            int w;
+            int h;
+            Sdl2Native.SDL_GetWindowSize(window, &w, &h);
+
             SwapchainDescription scDesc = new SwapchainDescription(
                 GetSwapchainSource(window),
-                (uint)window.Width,
-                (uint)window.Height,
+                (uint)w,
+                (uint)h,
                 options.SwapchainDepthFormat,
                 options.SyncToVerticalBlank,
                 colorSrgb);
